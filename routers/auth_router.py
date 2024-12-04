@@ -14,7 +14,7 @@ router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class LoginRequest(BaseModel):
-    user_id: str  # ユーザーID
+    user_id: str
     password: str
 
 class LoginResponse(BaseModel):

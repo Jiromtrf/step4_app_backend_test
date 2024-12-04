@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, TIMESTAMP, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, DateTime, TIMESTAMP, ForeignKey, Table, Text, Date
 from sqlalchemy.orm import relationship
-from db.database import Base  
+from db.database import Base
 from sqlalchemy.schema import PrimaryKeyConstraint
 from datetime import datetime
 
@@ -76,3 +76,15 @@ class TeamMember(Base):
     
     user = relationship("UserMaster", back_populates="team_members")
     team = relationship("Team", back_populates="members")
+
+
+class Quiz(Base):
+    __tablename__ = "quizzes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    question_text = Column(Text, nullable=False)
+    options = Column(Text, nullable=False)
+    correct_index = Column(Integer, nullable=False)
+    explanation = Column(Text, nullable=False)
+    category = Column(String(50), nullable=False)
+    date = Column(Date, nullable=False)
