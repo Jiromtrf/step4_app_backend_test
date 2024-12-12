@@ -7,6 +7,7 @@ from db.models import UserMaster, StatusTable, TeamMember, Team
 from utils.security import verify_token
 from jose import JWTError
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from datetime import datetime
 
 router = APIRouter()
 
@@ -16,6 +17,9 @@ class AddTeamMemberRequest(BaseModel):
     team_id: int
     role: str
     user_id: str
+
+class CreateTeamRequest(BaseModel):
+    name: str
 
 @router.post("/api/team/add_member")
 def add_team_member(
@@ -105,4 +109,30 @@ def get_team_info(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/api/team/create")
+def create_team(
+    request: CreateTeamRequest,
+    credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
+    db: Session = Depends(get_db)
+):
+    try:
+        payload = verify_token(credentials.credentials)
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        # 新しいチームを作成
+        new_team = Team(name=request.name)
+        db.add(new_team)
+        db.commit()
+        db.refresh(new_team)
+
+        # 作成者をPdMなど特定のロールで初期アサインするなどの対応も可能だが、ここでは空チームを返すだけ
+        return {"team_id": new_team.id, "team_name": new_team.name}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
